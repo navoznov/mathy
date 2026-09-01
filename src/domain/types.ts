@@ -63,6 +63,8 @@ export interface Session {
   plannedCount: number;
   aborted: boolean;
   attempts: Attempt[];
+  /** Что было начислено в момент сессии. Правило начисления временное и может
+   * измениться, поэтому для отображения всегда используйте summarize(), а не это поле. */
   stars: number;
 }
 

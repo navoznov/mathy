@@ -37,17 +37,17 @@ export function loadHistory(): Session[] {
   }
 }
 
-export function appendSession(session: Session): Session[] {
+export function appendSession(session: Session): { list: Session[]; saved: boolean } {
   // сессия без единого ответа — это случайное нажатие «Начать», в историю не идёт
-  if (session.attempts.length === 0) return loadHistory();
+  if (session.attempts.length === 0) return { list: loadHistory(), saved: true };
 
   const list = [session, ...loadHistory()].slice(0, HISTORY_CAP);
-  writeRaw(HISTORY_KEY, JSON.stringify(list));
-  return list;
+  const saved = writeRaw(HISTORY_KEY, JSON.stringify(list));
+  return { list, saved };
 }
 
-export function clearHistory(): void {
-  removeRaw(HISTORY_KEY);
+export function clearHistory(): boolean {
+  return removeRaw(HISTORY_KEY);
 }
 
 /** Экспорт делается с отступами: этот JSON читает человек, а не хранилище. */

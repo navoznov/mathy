@@ -13,6 +13,7 @@ export function PracticeFlow() {
   const [settings] = useState(loadSettings);
   const [history, setHistory] = useState(loadHistory);
   const [phase, setPhase] = useState<Phase>({ name: 'idle' });
+  const [saveError, setSaveError] = useState(false);
 
   const disabledReason = useMemo(() => {
     try {
@@ -28,7 +29,9 @@ export function PracticeFlow() {
   }, [settings]);
 
   const finish = useCallback((session: Session) => {
-    setHistory(appendSession(session));
+    const { list, saved } = appendSession(session);
+    setHistory(list);
+    setSaveError(!saved);
     setPhase({ name: 'done', session });
   }, []);
 
@@ -42,9 +45,18 @@ export function PracticeFlow() {
     );
   }
 
+  // Предупреждение рисуется поверх стартового экрана, а не поверх модалки
+  // с результатом: звёзды за пройденную сессию ребёнок должен увидеть в любом случае.
+  const saveWarning = saveError && (
+    <div className="app">
+      <p className="error">Результат не сохранён: браузер блокирует хранилище.</p>
+    </div>
+  );
+
   if (phase.name === 'done') {
     return (
       <>
+        {saveWarning}
         <StartScreen
           settings={settings}
           history={history}
@@ -61,11 +73,14 @@ export function PracticeFlow() {
   }
 
   return (
-    <StartScreen
-      settings={settings}
-      history={history}
-      disabledReason={disabledReason}
-      onStart={start}
-    />
+    <>
+      {saveWarning}
+      <StartScreen
+        settings={settings}
+        history={history}
+        disabledReason={disabledReason}
+        onStart={start}
+      />
+    </>
   );
 }

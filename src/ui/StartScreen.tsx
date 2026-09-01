@@ -1,3 +1,4 @@
+import { summarize } from '../domain/scoring';
 import { OPS, OP_SYMBOL } from '../domain/types';
 import type { Session, Settings } from '../domain/types';
 import { formatDateTime, formatStars } from './format';
@@ -35,7 +36,7 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
             {recent.map((s) => (
               <div className="row" key={s.id}>
                 <span className="muted">{formatDateTime(s.startedAt)}</span>
-                <span className="val">{s.aborted ? 'прервано' : formatStars(s.stars)}</span>
+                <span className="val">{s.aborted ? 'прервано' : formatStars(summarize(s).stars)}</span>
               </div>
             ))}
           </div>

@@ -62,7 +62,9 @@ export function WeakSpots({ sessions }: WeakSpotsProps) {
                 <span className="muted">
                   {p.a} {OP_SYMBOL[p.op]} {p.b}
                 </span>
-                <span className="val">{formatMs(p.avgMs)}</span>
+                <span className="val">
+                  {formatMs(p.avgMs)} · {p.total}
+                </span>
               </div>
             ))}
           </div>

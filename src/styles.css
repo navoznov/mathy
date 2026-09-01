@@ -95,12 +95,12 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   inset: 0;
   background: rgba(20, 26, 38, 0.55);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 1rem;
   overflow-y: auto;
 }
-.modal { background: var(--card); border-radius: 1rem; padding: 1.5rem; width: min(28rem, 100%); }
+.modal { background: var(--card); border-radius: 1rem; padding: 1.5rem; width: min(28rem, 100%); margin: auto; }
 
 .field { display: grid; gap: 0.35rem; margin-bottom: 0.75rem; }
 .field label { font-size: 0.9rem; color: var(--muted); }

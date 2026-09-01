@@ -124,9 +124,14 @@ export function topProblems(
     avgMs: ms / total,
   }));
 
+  // Ранжируем по числу ошибок, а не по их доле: сложение и вычитание берут
+  // примеры почти без повторов (каждый — total: 1), поэтому единственный
+  // промах там даёт errorRate 1.0 и забивает топ первыми попавшимися
+  // случайностями, отодвигая реально не усвоенные (но повторяющиеся)
+  // примеры умножения с более низкой долей, но большим числом ошибок.
   const byErrors = stats
     .filter((s) => s.wrong > 0)
-    .sort((x, y) => y.errorRate - x.errorRate || y.total - x.total)
+    .sort((x, y) => y.wrong - x.wrong || y.errorRate - x.errorRate)
     .slice(0, limit);
 
   const bySlowness = [...stats].sort((x, y) => y.avgMs - x.avgMs).slice(0, limit);

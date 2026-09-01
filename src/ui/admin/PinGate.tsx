@@ -1,8 +1,5 @@
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import { readTemp, writeTemp } from '../../storage/safeStorage';
-
-const UNLOCK_KEY = 'mathy.admin-unlocked';
 
 interface PinGateProps {
   pin: string | null;
@@ -10,7 +7,7 @@ interface PinGateProps {
 }
 
 export function PinGate({ pin, children }: PinGateProps) {
-  const [unlocked, setUnlocked] = useState(() => pin === null || readTemp(UNLOCK_KEY) === '1');
+  const [unlocked, setUnlocked] = useState(() => pin === null);
   const [entered, setEntered] = useState('');
   const [error, setError] = useState(false);
 
@@ -19,7 +16,6 @@ export function PinGate({ pin, children }: PinGateProps) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (entered === pin) {
-      writeTemp(UNLOCK_KEY, '1');
       setUnlocked(true);
     } else {
       setError(true);

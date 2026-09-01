@@ -64,7 +64,7 @@ describe('loadHistory', () => {
 describe('appendSession', () => {
   it('кладёт новую сессию в начало списка', () => {
     appendSession(session(1));
-    const list = appendSession(session(2));
+    const { list } = appendSession(session(2));
     expect(list.map((s) => s.id)).toEqual([session(2).id, session(1).id]);
   });
 
@@ -79,7 +79,7 @@ describe('appendSession', () => {
   });
 
   it('не сохраняет сессию без единого ответа', () => {
-    const list = appendSession(session(1, { aborted: true, attempts: [], totalMs: 0 }));
+    const { list } = appendSession(session(1, { aborted: true, attempts: [], totalMs: 0 }));
     expect(list).toEqual([]);
     expect(loadHistory()).toEqual([]);
   });
@@ -96,6 +96,13 @@ describe('appendSession', () => {
     appendSession(session(1));
     expect(localStorage.getItem(HISTORY_KEY)).not.toContain('\n');
   });
+
+  it('возвращает saved: false и не бросает при заблокированном хранилище', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(appendSession(session(1)).saved).toBe(false);
+  });
 });
 
 describe('clearHistory', () => {
@@ -103,6 +110,13 @@ describe('clearHistory', () => {
     appendSession(session(1));
     clearHistory();
     expect(loadHistory()).toEqual([]);
+  });
+
+  it('возвращает false и не бросает при заблокированном хранилище', () => {
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('SecurityError');
+    });
+    expect(clearHistory()).toBe(false);
   });
 });
 

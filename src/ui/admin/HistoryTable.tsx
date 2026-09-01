@@ -15,12 +15,17 @@ function downloadHistory(): void {
   const link = document.createElement('a');
   link.href = url;
   link.download = `mathy-history-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(link);
+  // revokeObjectURL синхронно сразу после click() может отменить ещё не начавшуюся
+  // загрузку — откладываем до следующего тика.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [clearError, setClearError] = useState(false);
 
   return (
     <div className="card">
@@ -73,14 +78,19 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
           disabled={sessions.length === 0}
           onClick={() => {
             if (window.confirm('Удалить всю историю? Это нельзя отменить.')) {
-              clearHistory();
-              onClear();
+              if (clearHistory()) {
+                setClearError(false);
+                onClear();
+              } else {
+                setClearError(true);
+              }
             }
           }}
         >
           Очистить
         </button>
       </div>
+      {clearError && <p className="error">Не удалось очистить: браузер блокирует хранилище.</p>}
     </div>
   );
 }

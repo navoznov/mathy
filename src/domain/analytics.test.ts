@@ -118,6 +118,22 @@ describe('topProblems', () => {
     expect(byErrors[1]).toMatchObject({ total: 2, wrong: 1, errorRate: 0.5 });
   });
 
+  it('ставит выше пример с большим числом ошибок, даже если доля ошибок ниже', () => {
+    // 7×8: 8 ошибок из 20 (errorRate 0.4) — устойчиво не усвоенный пример.
+    // 2×2: 1 ошибка из 1 (errorRate 1.0) — единственный показ, могла быть случайность.
+    // Старый компаратор (по errorRate) ставил 2×2 выше 7×8 — это и есть баг.
+    const oftenWrong = Array.from({ length: 20 }, (_, i) =>
+      attempt({ op: 'mul', a: 7, b: 8, expected: 56, correct: i >= 8, given: i >= 8 ? 56 : 0 }),
+    );
+    const sessions = [
+      session([...oftenWrong, attempt({ op: 'mul', a: 2, b: 2, expected: 4, correct: false, given: 0 })]),
+    ];
+    const { byErrors } = topProblems(sessions);
+    expect(byErrors.map((p) => `${p.a}×${p.b}`)).toEqual(['7×8', '2×2']);
+    expect(byErrors[0]).toMatchObject({ wrong: 8, total: 20, errorRate: 0.4 });
+    expect(byErrors[1]).toMatchObject({ wrong: 1, total: 1, errorRate: 1 });
+  });
+
   it('сортирует по среднему времени', () => {
     const sessions = [
       session([
