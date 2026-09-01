@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# Mathy
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Тренажёр устного счёта. Генерирует примеры по настраиваемым правилам, замеряет
+время на каждый пример и показывает, какие именно случаи не даются.
 
-Currently, two official plugins are available:
+## Разработка
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Нужен Node **20.19+ или 22.12+**. На более старых версиях npm молча пропускает
+платформенный биндинг сборщика (у него в `engines` тот же диапазон), и `npm test`
+падает с невнятным «Cannot find native binding».
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # локальный сервер
+npm test         # тесты доменного слоя
+npm run build    # сборка в dist/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Экраны
+
+- `/` — прохождение сессии
+- `/#/admin` — настройки и диагностика (можно закрыть кодом)
+
+## Хостинг
+
+Деплой на GitHub Pages происходит автоматически при push в `main`.
+Имя репозитория должно совпадать со значением `base` в `vite.config.ts`
+(сейчас `/mathy/`) — иначе на Pages не загрузятся ассеты.
+
+## Данные
+
+Настройки и история хранятся в `localStorage` браузера, на сервер ничего
+не уходит. История ограничена 200 последними сессиями, выгрузить её можно
+кнопкой «Экспорт в JSON» в админке.
+
+## Первичная настройка репозитория
+
+Выполняется один раз владельцем. Замени `<пользователь>` на своё имя на GitHub.
+
+    gh repo create mathy --public --source=. --remote=origin
+    git push -u origin main
+
+Затем: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Без этого переключателя workflow падает на шаге `configure-pages`
+с ошибкой «Pages is not enabled».
