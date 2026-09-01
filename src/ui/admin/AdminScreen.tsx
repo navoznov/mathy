@@ -7,9 +7,12 @@ import { SettingsForm } from './SettingsForm';
 export function AdminScreen() {
   const [settings, setSettings] = useState(loadSettings);
 
-  const save = (next: Settings) => {
-    saveSettings(next);
+  // Возвращаем признак успеха: при заблокированном хранилище форма обязана
+  // сказать правду, иначе родитель поверит, что код от настроек сохранён.
+  const save = (next: Settings): boolean => {
+    const ok = saveSettings(next);
     setSettings(next);
+    return ok;
   };
 
   return (

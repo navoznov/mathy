@@ -7,7 +7,8 @@ import type { PresetName } from '../../storage/settings';
 
 interface SettingsFormProps {
   settings: Settings;
-  onSave(next: Settings): void;
+  /** Возвращает false, если браузер заблокировал запись в хранилище. */
+  onSave(next: Settings): boolean;
 }
 
 const RANGE_LABEL: Record<Op, [string, string]> = {
@@ -19,7 +20,7 @@ const RANGE_LABEL: Record<Op, [string, string]> = {
 
 export function SettingsForm({ settings, onSave }: SettingsFormProps) {
   const [draft, setDraft] = useState<Settings>(settings);
-  const [saved, setSaved] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
 
   const error = useMemo(() => {
     try {
@@ -35,17 +36,17 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
 
   const patch = (change: Partial<Settings>) => {
     setDraft((d) => ({ ...d, ...change }));
-    setSaved(false);
+    setSaveState('idle');
   };
 
   const patchOp = (op: Op, change: Partial<OpConfig>) => {
     setDraft((d) => ({ ...d, ops: { ...d.ops, [op]: { ...d.ops[op], ...change } } }));
-    setSaved(false);
+    setSaveState('idle');
   };
 
   const applyPreset = (name: PresetName) => {
     setDraft({ ...structuredClone(PRESETS[name]), adminPin: draft.adminPin });
-    setSaved(false);
+    setSaveState('idle');
   };
 
   return (
@@ -184,14 +185,17 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
         <button
           className="btn-primary"
           disabled={error !== null}
-          onClick={() => {
-            onSave(draft);
-            setSaved(true);
-          }}
+          onClick={() => setSaveState(onSave(draft) ? 'saved' : 'failed')}
         >
           Сохранить
         </button>
-        {saved && <p className="muted">Сохранено</p>}
+        {saveState === 'saved' && <p className="muted">Сохранено</p>}
+        {saveState === 'failed' && (
+          <p className="error">
+            Не удалось сохранить: браузер блокирует хранилище. Настройки действуют
+            только до закрытия вкладки.
+          </p>
+        )}
       </div>
     </>
   );
