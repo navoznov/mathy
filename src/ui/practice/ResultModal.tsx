@@ -11,7 +11,11 @@ interface ResultModalProps {
 
 export function ResultModal({ session, onRestart, onHome }: ResultModalProps) {
   const s = summarize(session);
-  const correctRate = s.total === 0 ? 0 : s.correct / s.total;
+  // Округляем только одну долю, вторую выводим вычитанием: два независимых
+  // Math.round дают 101% на любой доле, попавшей ровно на N.5 (1 из 8 — это
+  // 13% и 88%).
+  const correctPct = s.total === 0 ? 0 : Math.round((s.correct / s.total) * 100);
+  const errorPct = s.total === 0 ? 0 : 100 - correctPct;
 
   return (
     <div className="modal-backdrop">
@@ -32,13 +36,13 @@ export function ResultModal({ session, onRestart, onHome }: ResultModalProps) {
           <div className="row">
             <span className="muted">Правильно</span>
             <span className="val">
-              {s.correct} ({Math.round(correctRate * 100)}%)
+              {s.correct} ({correctPct}%)
             </span>
           </div>
           <div className="row">
             <span className="muted">Ошибок</span>
             <span className="val">
-              {s.wrong} ({Math.round(s.errorRate * 100)}%)
+              {s.wrong} ({errorPct}%)
             </span>
           </div>
           <div className="row">

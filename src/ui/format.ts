@@ -4,7 +4,9 @@ import type { Attempt } from '../domain/types';
 
 export function formatMs(ms: number): string {
   const seconds = ms / 1000;
-  if (seconds < 60) return `${seconds.toFixed(1)} с`;
+  // Сравниваем уже округлённое значение: иначе 59.96 с показывается как
+  // «60.0 с» вместо «1 мин 0 с».
+  if (Number(seconds.toFixed(1)) < 60) return `${seconds.toFixed(1)} с`;
   const whole = Math.round(seconds);
   return `${Math.floor(whole / 60)} мин ${whole % 60} с`;
 }
