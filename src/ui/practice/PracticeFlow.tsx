@@ -1,18 +1,44 @@
+import { useCallback, useMemo, useState } from 'react';
 import { generateTasks } from '../../domain/generator';
-import { loadHistory } from '../../storage/history';
+import type { Session, Task } from '../../domain/types';
+import { appendSession, loadHistory } from '../../storage/history';
 import { loadSettings } from '../../storage/settings';
 import { StartScreen } from '../StartScreen';
+import { PracticeScreen } from './PracticeScreen';
 
-// Запуск сессии появится в Task 8; пока экран только отображается.
+type Phase = { name: 'idle' } | { name: 'running'; tasks: Task[] } | { name: 'done'; session: Session };
+
 export function PracticeFlow() {
-  const settings = loadSettings();
-  const history = loadHistory();
+  const [settings] = useState(loadSettings);
+  const [history, setHistory] = useState(loadHistory);
+  const [phase, setPhase] = useState<Phase>({ name: 'idle' });
 
-  let disabledReason: string | null = null;
-  try {
-    generateTasks(settings);
-  } catch (e) {
-    disabledReason = e instanceof Error ? e.message : 'Настройки не позволяют составить примеры';
+  const disabledReason = useMemo(() => {
+    try {
+      generateTasks(settings);
+      return null;
+    } catch (e) {
+      return e instanceof Error ? e.message : 'Настройки не позволяют составить примеры';
+    }
+  }, [settings]);
+
+  const start = useCallback(() => {
+    setPhase({ name: 'running', tasks: generateTasks(settings) });
+  }, [settings]);
+
+  const finish = useCallback((session: Session) => {
+    setHistory(appendSession(session));
+    setPhase({ name: 'done', session });
+  }, []);
+
+  if (phase.name === 'running') {
+    return (
+      <PracticeScreen
+        tasks={phase.tasks}
+        instantFeedback={settings.instantFeedback}
+        onFinish={finish}
+      />
+    );
   }
 
   return (
@@ -20,7 +46,7 @@ export function PracticeFlow() {
       settings={settings}
       history={history}
       disabledReason={disabledReason}
-      onStart={() => {}}
+      onStart={start}
     />
   );
 }
