@@ -5,6 +5,7 @@ import { appendSession, loadHistory } from '../../storage/history';
 import { loadSettings } from '../../storage/settings';
 import { StartScreen } from '../StartScreen';
 import { PracticeScreen } from './PracticeScreen';
+import { ResultModal } from './ResultModal';
 
 type Phase = { name: 'idle' } | { name: 'running'; tasks: Task[] } | { name: 'done'; session: Session };
 
@@ -38,6 +39,24 @@ export function PracticeFlow() {
         instantFeedback={settings.instantFeedback}
         onFinish={finish}
       />
+    );
+  }
+
+  if (phase.name === 'done') {
+    return (
+      <>
+        <StartScreen
+          settings={settings}
+          history={history}
+          disabledReason={disabledReason}
+          onStart={start}
+        />
+        <ResultModal
+          session={phase.session}
+          onRestart={start}
+          onHome={() => setPhase({ name: 'idle' })}
+        />
+      </>
     );
   }
 

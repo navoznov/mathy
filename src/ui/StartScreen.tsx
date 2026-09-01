@@ -1,5 +1,6 @@
 import { OPS, OP_SYMBOL } from '../domain/types';
 import type { Session, Settings } from '../domain/types';
+import { formatDateTime, formatStars } from './format';
 
 interface StartScreenProps {
   settings: Settings;
@@ -7,15 +8,6 @@ interface StartScreenProps {
   /** Текст, объясняющий, почему нельзя начать. null — можно. */
   disabledReason: string | null;
   onStart(): void;
-}
-
-function formatDate(startedAt: number): string {
-  return new Date(startedAt).toLocaleString('ru-RU', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 export function StartScreen({ settings, history, disabledReason, onStart }: StartScreenProps) {
@@ -42,10 +34,8 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
           <div className="rows">
             {recent.map((s) => (
               <div className="row" key={s.id}>
-                <span className="muted">{formatDate(s.startedAt)}</span>
-                <span className="val">
-                  {s.aborted ? 'прервано' : '★'.repeat(s.stars)}
-                </span>
+                <span className="muted">{formatDateTime(s.startedAt)}</span>
+                <span className="val">{s.aborted ? 'прервано' : formatStars(s.stars)}</span>
               </div>
             ))}
           </div>

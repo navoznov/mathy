@@ -1,6 +1,6 @@
 import type { Session, Summary, Task } from './types';
 
-const MAX_STARS = 5;
+export const MAX_STARS = 5;
 
 export function checkAnswer(task: Task, given: number): boolean {
   return given === task.expected;
