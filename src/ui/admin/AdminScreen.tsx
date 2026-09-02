@@ -23,7 +23,10 @@ export function AdminScreen() {
   return (
     <PinGate pin={settings.adminPin}>
       <div className="app">
-        <h1>Настройки</h1>
+        <div className="page-head">
+          <h1>Настройки</h1>
+          <a href="#/">← Назад</a>
+        </div>
         <SettingsForm settings={settings} onSave={save} />
         <WeakSpots sessions={history} />
         <MultiplicationHeatmap sessions={history} />

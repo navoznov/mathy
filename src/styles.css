@@ -38,6 +38,10 @@ h1 { font-size: 1.5rem; margin: 0 0 0.75rem; }
 h2 { font-size: 1.1rem; margin: 0 0 0.75rem; }
 .muted { color: var(--muted); font-size: 0.9rem; }
 
+.page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+.page-head h1 { margin: 0; }
+.page-head a { font-size: 0.9rem; white-space: nowrap; }
+
 button {
   font: inherit;
   border-radius: 0.75rem;
