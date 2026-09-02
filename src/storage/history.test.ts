@@ -16,6 +16,7 @@ function session(n: number, patch: Partial<Session> = {}): Session {
   return {
     id: `2026-09-01T10:00:${String(n).padStart(2, '0')}.000Z`,
     startedAt: 1_772_000_000_000 + n,
+    mode: 'training',
     totalMs: 1000,
     plannedCount: 1,
     aborted: false,
@@ -51,6 +52,23 @@ describe('loadHistory', () => {
     const [loaded] = loadHistory();
     expect(loaded.aborted).toBe(false);
     expect(loaded.plannedCount).toBe(1);
+  });
+
+  it('считает сессию без mode тренировкой', () => {
+    const legacy = { id: 'old', startedAt: 1, totalMs: 500, attempts: [attempt()], stars: 5 };
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([legacy]));
+    expect(loadHistory()[0].mode).toBe('training');
+  });
+
+  it('сохраняет режим экзамена', () => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([session(1, { mode: 'exam' })]));
+    expect(loadHistory()[0].mode).toBe('exam');
+  });
+
+  it('чинит незнакомое значение mode', () => {
+    const broken = { ...session(1), mode: 'что-то своё' };
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([broken]));
+    expect(loadHistory()[0].mode).toBe('training');
   });
 
   it('не падает, когда localStorage недоступен', () => {

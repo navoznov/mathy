@@ -1,13 +1,16 @@
 import { useCallback, useMemo, useState } from 'react';
 import { generateTasks } from '../../domain/generator';
-import type { Session, Task } from '../../domain/types';
+import type { PracticeMode, Session, Task } from '../../domain/types';
 import { appendSession, loadHistory } from '../../storage/history';
 import { loadSettings } from '../../storage/settings';
 import { StartScreen } from '../StartScreen';
 import { PracticeScreen } from './PracticeScreen';
 import { ResultModal } from './ResultModal';
 
-type Phase = { name: 'idle' } | { name: 'running'; tasks: Task[] } | { name: 'done'; session: Session };
+type Phase =
+  | { name: 'idle' }
+  | { name: 'running'; tasks: Task[]; mode: PracticeMode }
+  | { name: 'done'; session: Session };
 
 export function PracticeFlow() {
   const [settings] = useState(loadSettings);
@@ -24,9 +27,12 @@ export function PracticeFlow() {
     }
   }, [settings]);
 
-  const start = useCallback(() => {
-    setPhase({ name: 'running', tasks: generateTasks(settings) });
-  }, [settings]);
+  const start = useCallback(
+    (mode: PracticeMode) => {
+      setPhase({ name: 'running', tasks: generateTasks(settings), mode });
+    },
+    [settings],
+  );
 
   const finish = useCallback((session: Session) => {
     const { list, saved } = appendSession(session);
@@ -36,13 +42,7 @@ export function PracticeFlow() {
   }, []);
 
   if (phase.name === 'running') {
-    return (
-      <PracticeScreen
-        tasks={phase.tasks}
-        instantFeedback={settings.instantFeedback}
-        onFinish={finish}
-      />
-    );
+    return <PracticeScreen tasks={phase.tasks} mode={phase.mode} onFinish={finish} />;
   }
 
   // Предупреждение рисуется поверх стартового экрана, а не поверх модалки
@@ -65,7 +65,7 @@ export function PracticeFlow() {
         />
         <ResultModal
           session={phase.session}
-          onRestart={start}
+          onRestart={() => start(phase.session.mode)}
           onHome={() => setPhase({ name: 'idle' })}
         />
       </>

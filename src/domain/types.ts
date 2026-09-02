@@ -16,6 +16,13 @@ export const OP_LABEL: Record<Op, string> = {
   div: 'Деление',
 };
 
+export type PracticeMode = 'training' | 'exam';
+
+export const MODE_LABEL: Record<PracticeMode, string> = {
+  training: 'Тренировка',
+  exam: 'Экзамен',
+};
+
 export interface OpConfig {
   enabled: boolean;
   /** Для div — диапазон частного (ответа). */
@@ -32,7 +39,6 @@ export interface Settings {
   ops: Record<Op, OpConfig>;
   requireCarry: boolean;
   allowNegative: boolean;
-  instantFeedback: boolean;
   adminPin: string | null;
 }
 
@@ -58,6 +64,7 @@ export interface Session {
   /** ISO-timestamp, он же ключ сортировки. */
   id: string;
   startedAt: number;
+  mode: PracticeMode;
   /** Сумма attempt.ms, а не wall-clock. */
   totalMs: number;
   plannedCount: number;

@@ -152,15 +152,6 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
             />{' '}
             Разрешить отрицательные ответы в вычитании
           </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={draft.instantFeedback}
-              onChange={(e) => patch({ instantFeedback: e.target.checked })}
-            />{' '}
-            Показывать правильность сразу (режим тренировки)
-          </label>
         </div>
 
         <div className="field" style={{ marginTop: '0.75rem' }}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { summarize } from '../../domain/scoring';
+import { MODE_LABEL } from '../../domain/types';
 import type { Session } from '../../domain/types';
 import { clearHistory, exportHistory } from '../../storage/history';
 import { formatAttempt, formatDateTime, formatMs, formatStars } from '../format';
@@ -47,6 +48,7 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
                 >
                   <span className="muted">{formatDateTime(session.startedAt)}</span>
                   <span className="val">
+                    {MODE_LABEL[session.mode]} ·{' '}
                     {session.aborted
                       ? `прервано, ${s.total} из ${session.plannedCount}`
                       : `${s.total} примеров`}{' '}

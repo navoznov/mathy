@@ -24,7 +24,6 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: false,
     allowNegative: false,
-    instantFeedback: true,
     adminPin: null,
   },
   medium: {
@@ -38,7 +37,6 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: false,
     allowNegative: false,
-    instantFeedback: true,
     adminPin: null,
   },
   hard: {
@@ -52,7 +50,6 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: true,
     allowNegative: false,
-    instantFeedback: true,
     adminPin: null,
   },
 };
