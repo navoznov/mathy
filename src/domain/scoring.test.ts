@@ -10,6 +10,7 @@ function session(attempts: Attempt[], patch: Partial<Session> = {}): Session {
   return {
     id: '2026-09-01T10:00:00.000Z',
     startedAt: 1_772_000_000_000,
+    mode: 'training',
     totalMs: attempts.reduce((s, a) => s + a.ms, 0),
     plannedCount: attempts.length,
     aborted: false,

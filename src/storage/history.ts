@@ -7,6 +7,9 @@ export const HISTORY_CAP = 200;
 /**
  * Неизвестные поля игнорируются, отсутствующие получают значения по умолчанию.
  * Записи без id или без массива попыток отбрасываются целиком.
+ *
+ * Сессии, записанные до появления режимов, считаются тренировкой: тогда
+ * правильность ответа показывалась сразу во всех пресетах.
  */
 function normalize(value: unknown): Session | null {
   if (typeof value !== 'object' || value === null) return null;
@@ -16,6 +19,7 @@ function normalize(value: unknown): Session | null {
   return {
     id: s.id,
     startedAt: typeof s.startedAt === 'number' ? s.startedAt : 0,
+    mode: s.mode === 'exam' ? 'exam' : 'training',
     totalMs: typeof s.totalMs === 'number' ? s.totalMs : 0,
     plannedCount: typeof s.plannedCount === 'number' ? s.plannedCount : s.attempts.length,
     aborted: s.aborted === true,

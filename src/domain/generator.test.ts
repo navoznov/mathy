@@ -11,7 +11,6 @@ function makeSettings(patch: Partial<Settings> = {}): Settings {
     ops: { add: { ...OFF }, sub: { ...OFF }, mul: { ...OFF }, div: { ...OFF } },
     requireCarry: false,
     allowNegative: false,
-    instantFeedback: true,
     adminPin: null,
     ...patch,
   };

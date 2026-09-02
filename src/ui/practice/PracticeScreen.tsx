@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { calcStars, checkAnswer } from '../../domain/scoring';
 import { OP_SYMBOL } from '../../domain/types';
-import type { Attempt, Session, Task } from '../../domain/types';
+import type { Attempt, PracticeMode, Session, Task } from '../../domain/types';
 import { Keypad } from './Keypad';
 import { TaskCard } from './TaskCard';
 
 const FEEDBACK_MS = 800;
+/** Разбор ошибки ждёт нажатия, но не мгновенного: Enter, которым подтвердили
+ * ответ, иначе пролистнёт разбор вторым нажатием, и его никто не прочитает. */
+const MISTAKE_LOCK_MS = 400;
 const MAX_INPUT_LENGTH = 6;
 
 interface PracticeScreenProps {
   tasks: Task[];
-  instantFeedback: boolean;
+  mode: PracticeMode;
   onFinish(session: Session): void;
 }
 
@@ -20,10 +23,11 @@ interface Feedback {
   given: number;
 }
 
-export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScreenProps) {
+export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState('');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [dismissable, setDismissable] = useState(false);
   const [confirmAbort, setConfirmAbort] = useState(false);
 
   const attemptsRef = useRef<Attempt[]>([]);
@@ -44,6 +48,7 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
       onFinish({
         id: new Date(sessionStartedRef.current).toISOString(),
         startedAt: sessionStartedRef.current,
+        mode,
         totalMs: attempts.reduce((sum, a) => sum + a.ms, 0),
         plannedCount: tasks.length,
         aborted,
@@ -51,7 +56,7 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
         stars: calcStars(wrong, aborted),
       });
     },
-    [onFinish, tasks.length],
+    [mode, onFinish, tasks.length],
   );
 
   // Обновляющая функция setIndex обязана быть чистой: побочный эффект внутри неё
@@ -80,21 +85,31 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
     ];
     setInput('');
 
-    if (instantFeedback) {
+    if (mode === 'training') {
       setFeedback({ correct, task, given });
+      setDismissable(false);
     } else {
       advance();
     }
-  }, [advance, canSubmit, feedback, input, instantFeedback, task]);
+  }, [advance, canSubmit, feedback, input, mode, task]);
 
+  const dismiss = useCallback(() => {
+    setFeedback(null);
+    advance();
+  }, [advance]);
+
+  // Похвала за верный ответ уезжает сама, разбор ошибки — только по нажатию.
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(() => {
-      setFeedback(null);
-      advance();
-    }, FEEDBACK_MS);
+    if (feedback.correct) {
+      const timer = setTimeout(dismiss, FEEDBACK_MS);
+      return () => clearTimeout(timer);
+    }
+    const timer = setTimeout(() => setDismissable(true), MISTAKE_LOCK_MS);
     return () => clearTimeout(timer);
-  }, [advance, feedback]);
+  }, [dismiss, feedback]);
+
+  const showingMistake = feedback !== null && !feedback.correct;
 
   const appendDigit = useCallback((digit: string) => {
     setInput((v) => (v.replace('-', '').length >= MAX_INPUT_LENGTH ? v : v + digit));
@@ -108,7 +123,15 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (feedback || confirmAbort) return;
+      if (confirmAbort) return;
+      if (showingMistake) {
+        if (e.key === 'Enter' && dismissable) {
+          dismiss();
+          e.preventDefault();
+        }
+        return;
+      }
+      if (feedback) return;
       if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
       else if (e.key === 'Backspace') backspace();
       else if (e.key === '-') toggleSign();
@@ -118,7 +141,17 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [appendDigit, backspace, confirmAbort, feedback, submit, toggleSign]);
+  }, [
+    appendDigit,
+    backspace,
+    confirmAbort,
+    dismiss,
+    dismissable,
+    feedback,
+    showingMistake,
+    submit,
+    toggleSign,
+  ]);
 
   return (
     <div className="app">
@@ -147,15 +180,20 @@ export function PracticeScreen({ tasks, instantFeedback, onFinish }: PracticeScr
           <TaskCard task={task} input={input} />
         )}
 
-        <Keypad onDigit={appendDigit} onBackspace={backspace} onToggleSign={toggleSign} />
+        <Keypad
+          onDigit={appendDigit}
+          onBackspace={backspace}
+          onToggleSign={toggleSign}
+          disabled={feedback !== null}
+        />
 
         <button
           className="btn-primary"
           style={{ marginTop: '0.75rem' }}
-          onClick={submit}
-          disabled={!canSubmit || feedback !== null}
+          onClick={showingMistake ? dismiss : submit}
+          disabled={showingMistake ? !dismissable : !canSubmit || feedback !== null}
         >
-          Дальше →
+          {showingMistake ? 'Понятно →' : 'Дальше →'}
         </button>
       </div>
 

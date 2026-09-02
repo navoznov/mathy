@@ -46,7 +46,7 @@ describe('loadSettings', () => {
   });
 
   it('читает сохранённые настройки', () => {
-    const custom = { ...DEFAULTS, taskCount: 7, instantFeedback: false };
+    const custom = { ...DEFAULTS, taskCount: 7, requireCarry: true };
     saveSettings(custom);
     expect(loadSettings()).toEqual(custom);
   });

@@ -1,6 +1,6 @@
 import { summarize } from '../domain/scoring';
 import { OPS, OP_SYMBOL } from '../domain/types';
-import type { Session, Settings } from '../domain/types';
+import type { PracticeMode, Session, Settings } from '../domain/types';
 import { formatDateTime, formatStars } from './format';
 
 interface StartScreenProps {
@@ -8,7 +8,7 @@ interface StartScreenProps {
   history: Session[];
   /** Текст, объясняющий, почему нельзя начать. null — можно. */
   disabledReason: string | null;
-  onStart(): void;
+  onStart(mode: PracticeMode): void;
 }
 
 export function StartScreen({ settings, history, disabledReason, onStart }: StartScreenProps) {
@@ -23,9 +23,23 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
         <p className="muted">
           {settings.taskCount} примеров: {enabled.join(' ')}
         </p>
-        <button className="btn-primary" onClick={onStart} disabled={disabledReason !== null}>
-          Начать
+        <button
+          className="btn-primary"
+          onClick={() => onStart('training')}
+          disabled={disabledReason !== null}
+        >
+          Тренировка
         </button>
+        <button
+          style={{ width: '100%', marginTop: '0.5rem' }}
+          onClick={() => onStart('exam')}
+          disabled={disabledReason !== null}
+        >
+          Экзамен
+        </button>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          В тренировке сразу видно, верно ли решён пример. На экзамене — только в конце.
+        </p>
         {disabledReason && <p className="error">{disabledReason}</p>}
       </div>
 
