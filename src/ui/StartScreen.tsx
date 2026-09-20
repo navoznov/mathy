@@ -27,7 +27,7 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
         <button
           className="btn-primary"
           onClick={() => onStart('training')}
-          disabled={disabledReason !== null}
+          disabled={disabledReason !== null || !settings.trainingEnabled}
         >
           Тренировка
         </button>

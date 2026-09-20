@@ -46,7 +46,13 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
   };
 
   const applyPreset = (name: PresetName) => {
-    setDraft({ ...structuredClone(PRESETS[name]), adminPin: draft.adminPin });
+    // Пресет — это уровень сложности. Родительские решения (код, доступность
+    // тренировки) он не трогает.
+    setDraft({
+      ...structuredClone(PRESETS[name]),
+      trainingEnabled: draft.trainingEnabled,
+      adminPin: draft.adminPin,
+    });
     setSaveState('idle');
   };
 
@@ -152,6 +158,17 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
               onChange={(e) => patch({ allowNegative: e.target.checked })}
             />{' '}
             Разрешить отрицательные ответы в вычитании
+          </label>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--line)', paddingTop: '0.75rem' }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={draft.trainingEnabled}
+              onChange={(e) => patch({ trainingEnabled: e.target.checked })}
+            />{' '}
+            Разрешить режим тренировки
           </label>
         </div>
 

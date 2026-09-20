@@ -39,6 +39,8 @@ export interface Settings {
   ops: Record<Op, OpConfig>;
   requireCarry: boolean;
   allowNegative: boolean;
+  /** Доступен ли запуск тренировки. Экзамен доступен всегда. */
+  trainingEnabled: boolean;
   adminPin: string | null;
 }
 
