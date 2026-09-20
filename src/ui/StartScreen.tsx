@@ -2,6 +2,7 @@ import { summarize } from '../domain/scoring';
 import { OPS, OP_SYMBOL } from '../domain/types';
 import type { PracticeMode, Session, Settings } from '../domain/types';
 import { formatDateTime, formatStars } from './format';
+import { ModeBadge } from './ModeBadge';
 
 interface StartScreenProps {
   settings: Settings;
@@ -49,7 +50,9 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
           <div className="rows">
             {recent.map((s) => (
               <div className="row" key={s.id}>
-                <span className="muted">{formatDateTime(s.startedAt)}</span>
+                <span className="muted when">
+                  {formatDateTime(s.startedAt)} <ModeBadge mode={s.mode} />
+                </span>
                 <span className="val">{s.aborted ? 'прервано' : formatStars(summarize(s).stars)}</span>
               </div>
             ))}
