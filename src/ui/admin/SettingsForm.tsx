@@ -21,6 +21,7 @@ const RANGE_LABEL: Record<Op, [string, string]> = {
 export function SettingsForm({ settings, onSave }: SettingsFormProps) {
   const [draft, setDraft] = useState<Settings>(settings);
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'failed'>('idle');
+  const [showPin, setShowPin] = useState(false);
 
   const error = useMemo(() => {
     try {
@@ -156,13 +157,19 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
 
         <div className="field" style={{ marginTop: '0.75rem' }}>
           <label htmlFor="admin-pin">Код от настроек (пусто — без кода)</label>
-          <input
-            id="admin-pin"
-            type="text"
-            inputMode="numeric"
-            value={draft.adminPin ?? ''}
-            onChange={(e) => patch({ adminPin: e.target.value.trim() === '' ? null : e.target.value.trim() })}
-          />
+          <div className="pin-row">
+            <input
+              id="admin-pin"
+              type={showPin ? 'text' : 'password'}
+              inputMode="numeric"
+              autoComplete="new-password"
+              value={draft.adminPin ?? ''}
+              onChange={(e) => patch({ adminPin: e.target.value.trim() === '' ? null : e.target.value.trim() })}
+            />
+            <button type="button" className="btn-ghost" aria-pressed={showPin} onClick={() => setShowPin((v) => !v)}>
+              {showPin ? 'Скрыть' : 'Показать'}
+            </button>
+          </div>
         </div>
 
         {error && <p className="error">{error}</p>}

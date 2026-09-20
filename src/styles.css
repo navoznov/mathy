@@ -127,7 +127,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .field { display: grid; gap: 0.35rem; margin-bottom: 0.75rem; }
 .field label { font-size: 0.9rem; color: var(--muted); }
-input[type='number'], input[type='password'] {
+input[type='number'], input[type='password'], input[type='text'] {
   font: inherit;
   padding: 0.6rem;
   border: 1px solid var(--line);
@@ -135,6 +135,9 @@ input[type='number'], input[type='password'] {
   width: 100%;
 }
 .range { display: flex; align-items: center; gap: 0.5rem; }
+.pin-row { display: flex; align-items: center; gap: 0.5rem; }
+.pin-row input { flex: 1; min-width: 0; }
+.pin-row button { padding: 0.5rem 0.75rem; min-height: 2.75rem; white-space: nowrap; }
 .range input { width: 5rem; }
 
 .grid-table { border-collapse: collapse; font-size: 0.8rem; }
