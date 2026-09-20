@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { summarize } from '../../domain/scoring';
 import type { Session } from '../../domain/types';
 import { clearHistory, exportHistory } from '../../storage/history';
@@ -9,6 +10,8 @@ const PAGE_SIZE = 20;
 
 interface HistoryTableProps {
   sessions: Session[];
+  /** Код от настроек: очистка доступна только тому, кто его знает. */
+  adminPin: string | null;
   onClear(): void;
 }
 
@@ -26,10 +29,13 @@ function downloadHistory(): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
+export function HistoryTable({ sessions, adminPin, onClear }: HistoryTableProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [clearError, setClearError] = useState(false);
   const [page, setPage] = useState(0);
+  const [asking, setAsking] = useState(false);
+  const [entered, setEntered] = useState('');
+  const [pinError, setPinError] = useState(false);
 
   const pageCount = Math.max(1, Math.ceil(sessions.length / PAGE_SIZE));
   // История может укоротиться под ногами (очистка), а номер страницы в стейте —
@@ -40,6 +46,37 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
   const goTo = (next: number): void => {
     setPage(next);
     setOpenId(null);
+  };
+
+  const clear = (): void => {
+    if (clearHistory()) {
+      setClearError(false);
+      setAsking(false);
+      setEntered('');
+      onClear();
+    } else {
+      setClearError(true);
+    }
+  };
+
+  const requestClear = (): void => {
+    // Код не задан — барьера нет, ровно как у входа в настройки.
+    if (adminPin === null) {
+      if (window.confirm('Удалить всю историю? Это нельзя отменить.')) clear();
+      return;
+    }
+    setAsking(true);
+  };
+
+  const submitPin = (e: FormEvent): void => {
+    e.preventDefault();
+    // Введённый код — он же подтверждение: второго диалога нет намеренно.
+    if (entered === adminPin) {
+      clear();
+    } else {
+      setPinError(true);
+      setEntered('');
+    }
   };
 
   return (
@@ -100,27 +137,50 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-        <button style={{ flex: 1 }} onClick={downloadHistory} disabled={sessions.length === 0}>
-          Экспорт в JSON
-        </button>
-        <button
-          style={{ flex: 1 }}
-          disabled={sessions.length === 0}
-          onClick={() => {
-            if (window.confirm('Удалить всю историю? Это нельзя отменить.')) {
-              if (clearHistory()) {
-                setClearError(false);
-                onClear();
-              } else {
-                setClearError(true);
-              }
-            }
-          }}
-        >
-          Очистить
-        </button>
-      </div>
+      {asking ? (
+        <form style={{ marginTop: '1rem' }} onSubmit={submitPin}>
+          <div className="field">
+            <label htmlFor="clear-pin">Код администратора</label>
+            <input
+              id="clear-pin"
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              value={entered}
+              onChange={(e) => {
+                setEntered(e.target.value);
+                setPinError(false);
+              }}
+            />
+          </div>
+          {pinError && <p className="error">Неверный код</p>}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button style={{ flex: 1 }} type="submit">
+              Удалить
+            </button>
+            <button
+              style={{ flex: 1 }}
+              type="button"
+              onClick={() => {
+                setAsking(false);
+                setEntered('');
+                setPinError(false);
+              }}
+            >
+              Отмена
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+          <button style={{ flex: 1 }} onClick={downloadHistory} disabled={sessions.length === 0}>
+            Экспорт в JSON
+          </button>
+          <button style={{ flex: 1 }} disabled={sessions.length === 0} onClick={requestClear}>
+            Очистить
+          </button>
+        </div>
+      )}
       {clearError && <p className="error">Не удалось очистить: браузер блокирует хранилище.</p>}
     </div>
   );

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 
-export type Route = 'practice' | 'admin';
+export type Route = 'practice' | 'admin' | 'history';
 
 function currentRoute(): Route {
-  return window.location.hash.startsWith('#/admin') ? 'admin' : 'practice';
+  const hash = window.location.hash;
+  if (hash.startsWith('#/admin')) return 'admin';
+  if (hash.startsWith('#/history')) return 'history';
+  return 'practice';
 }
 
 export function useHashRoute(): Route {

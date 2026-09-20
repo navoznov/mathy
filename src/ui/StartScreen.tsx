@@ -57,11 +57,14 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
               </div>
             ))}
           </div>
+          <p className="muted" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+            <a href="#/history">Вся история →</a>
+          </p>
         </div>
       )}
 
       <p className="muted">
-        <a href="#/admin">Настройки</a>
+        <a href="#/history">История</a> · <a href="#/admin">Настройки</a>
       </p>
     </div>
   );
