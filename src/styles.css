@@ -90,9 +90,28 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .stars { font-size: 2rem; color: var(--star); text-align: center; letter-spacing: 0.2rem; }
 
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+  vertical-align: 0.05em;
+}
+.badge-exam { border-color: var(--accent); color: var(--accent); }
+
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; }
+.pager button { padding: 0.5rem 0.9rem; min-height: 2.5rem; }
+
 .rows { display: grid; gap: 0.4rem; }
 .row { display: flex; justify-content: space-between; gap: 1rem; }
 .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+/* дата и бейдж режима — всегда одной строкой, иначе бейдж съезжает под дату */
+.row .when { white-space: nowrap; }
 
 .modal-backdrop {
   position: fixed;

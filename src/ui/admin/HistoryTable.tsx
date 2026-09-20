@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { summarize } from '../../domain/scoring';
-import { MODE_LABEL } from '../../domain/types';
 import type { Session } from '../../domain/types';
 import { clearHistory, exportHistory } from '../../storage/history';
 import { formatAttempt, formatDateTime, formatMs, formatStars } from '../format';
+import { ModeBadge } from '../ModeBadge';
+
+const PAGE_SIZE = 20;
 
 interface HistoryTableProps {
   sessions: Session[];
@@ -27,6 +29,18 @@ function downloadHistory(): void {
 export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [clearError, setClearError] = useState(false);
+  const [page, setPage] = useState(0);
+
+  const pageCount = Math.max(1, Math.ceil(sessions.length / PAGE_SIZE));
+  // История может укоротиться под ногами (очистка), а номер страницы в стейте —
+  // нет: без зажима получим пустой список на несуществующей странице.
+  const current = Math.min(page, pageCount - 1);
+  const visible = sessions.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
+
+  const goTo = (next: number): void => {
+    setPage(next);
+    setOpenId(null);
+  };
 
   return (
     <div className="card">
@@ -36,7 +50,7 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
         <p className="muted">Пока пусто.</p>
       ) : (
         <div className="rows">
-          {sessions.map((session) => {
+          {visible.map((session) => {
             const s = summarize(session);
             const open = openId === session.id;
             return (
@@ -46,9 +60,10 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
                   style={{ cursor: 'pointer' }}
                   onClick={() => setOpenId(open ? null : session.id)}
                 >
-                  <span className="muted">{formatDateTime(session.startedAt)}</span>
+                  <span className="muted when">
+                    {formatDateTime(session.startedAt)} <ModeBadge mode={session.mode} />
+                  </span>
                   <span className="val">
-                    {MODE_LABEL[session.mode]} ·{' '}
                     {session.aborted
                       ? `прервано, ${s.total} из ${session.plannedCount}`
                       : `${s.total} примеров`}{' '}
@@ -68,6 +83,20 @@ export function HistoryTable({ sessions, onClear }: HistoryTableProps) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {pageCount > 1 && (
+        <div className="pager">
+          <button onClick={() => goTo(current - 1)} disabled={current === 0}>
+            ← Новее
+          </button>
+          <span className="muted">
+            {current + 1} / {pageCount}
+          </span>
+          <button onClick={() => goTo(current + 1)} disabled={current === pageCount - 1}>
+            Старее →
+          </button>
         </div>
       )}
 
