@@ -30,6 +30,12 @@ describe('PRESETS', () => {
       expect(preset.adminPin).toBeNull();
     }
   });
+
+  it('разрешает тренировку во всех пресетах', () => {
+    for (const preset of Object.values(PRESETS)) {
+      expect(preset.trainingEnabled).toBe(true);
+    }
+  });
 });
 
 describe('loadSettings', () => {
@@ -72,6 +78,18 @@ describe('loadSettings', () => {
       throw new Error('SecurityError');
     });
     expect(loadSettings()).toEqual(DEFAULTS);
+  });
+
+  it('включает тренировку в записи, сохранённой до появления галочки', () => {
+    const legacy: Record<string, unknown> = { ...DEFAULTS };
+    delete legacy.trainingEnabled;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(legacy));
+    expect(loadSettings().trainingEnabled).toBe(true);
+  });
+
+  it('сохраняет выключенную тренировку', () => {
+    saveSettings({ ...DEFAULTS, trainingEnabled: false });
+    expect(loadSettings().trainingEnabled).toBe(false);
   });
 });
 

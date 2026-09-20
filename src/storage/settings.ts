@@ -24,6 +24,7 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: false,
     allowNegative: false,
+    trainingEnabled: true,
     adminPin: null,
   },
   medium: {
@@ -37,6 +38,7 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: false,
     allowNegative: false,
+    trainingEnabled: true,
     adminPin: null,
   },
   hard: {
@@ -50,6 +52,7 @@ export const PRESETS: Record<PresetName, Settings> = {
     },
     requireCarry: true,
     allowNegative: false,
+    trainingEnabled: true,
     adminPin: null,
   },
 };
@@ -86,7 +89,9 @@ export function loadSettings(): Settings {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    return isSettingsShape(parsed) ? parsed : clone(DEFAULTS);
+    // Поля, появившиеся позже схемы, доливаются из DEFAULTS: бампать version
+    // ради нового флага нельзя — это сбросит уже настроенные диапазоны.
+    return isSettingsShape(parsed) ? { ...clone(DEFAULTS), ...parsed } : clone(DEFAULTS);
   } catch {
     return clone(DEFAULTS);
   }
