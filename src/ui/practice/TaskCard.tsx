@@ -28,9 +28,12 @@ export function TaskCard({ task, input, remInput, field, onSelectField }: TaskCa
       <span className={slotClass('quotient')} onClick={() => onSelectField('quotient')}>
         {input}
       </span>{' '}
-      <span className="rem-label">ост.</span>{' '}
-      <span className={slotClass('remainder')} onClick={() => onSelectField('remainder')}>
-        {remInput}
+      {/* «ост.» не отрывается от своего поля при переносе строки на узком экране */}
+      <span className="rem-group">
+        <span className="rem-label">ост.</span>{' '}
+        <span className={slotClass('remainder')} onClick={() => onSelectField('remainder')}>
+          {remInput}
+        </span>
       </span>
     </div>
   );

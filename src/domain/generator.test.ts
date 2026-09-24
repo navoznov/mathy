@@ -215,6 +215,13 @@ describe('generateTasks — деление с остатком', () => {
     expect(t).toEqual({ op: 'div', a: 4, b: 5, expected: 0, remainder: 4 });
   });
 
+  it('без флага тратит rng как раньше: сначала делитель, потом частное', () => {
+    const values = [0.99, 0];
+    let i = 0;
+    const [t] = generateTasks(only('div', {}, { taskCount: 1 }), () => values[i++]);
+    expect(t).toEqual({ op: 'div', a: 20, b: 10, expected: 2 });
+  });
+
   it('без флага остатка нет и деление нацело', () => {
     for (const t of generateTasks(only('div', { aMin: 2, aMax: 9, bMin: 3, bMax: 7 }, { taskCount: 30 }))) {
       expect('remainder' in t).toBe(false);
