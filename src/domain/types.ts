@@ -61,6 +61,9 @@ export interface Attempt {
   b: number;
   expected: number;
   given: number;
+  /** Есть только у деления с остатком. */
+  expectedRemainder?: number;
+  givenRemainder?: number;
   correct: boolean;
   /** Время именно на этот пример, мс. */
   ms: number;

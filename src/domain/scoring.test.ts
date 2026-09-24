@@ -32,6 +32,30 @@ describe('checkAnswer', () => {
   it('работает с отрицательными ответами', () => {
     expect(checkAnswer({ op: 'sub', a: 3, b: 10, expected: -7 }, -7)).toBe(true);
   });
+
+  const withRemainder = { op: 'div' as const, a: 17, b: 5, expected: 3, remainder: 2 };
+
+  it('принимает деление с остатком, только если совпали оба числа', () => {
+    expect(checkAnswer(withRemainder, 3, 2)).toBe(true);
+  });
+
+  it('считает ошибкой неверный остаток при верном частном', () => {
+    expect(checkAnswer(withRemainder, 3, 1)).toBe(false);
+  });
+
+  it('считает ошибкой неверное частное при верном остатке', () => {
+    expect(checkAnswer(withRemainder, 4, 2)).toBe(false);
+  });
+
+  it('считает ошибкой остаток не меньше делителя, даже если b·q + r сходится', () => {
+    expect(checkAnswer(withRemainder, 2, 7)).toBe(false);
+  });
+
+  it('требует явный ноль в остатке', () => {
+    const exact = { op: 'div' as const, a: 15, b: 5, expected: 3, remainder: 0 };
+    expect(checkAnswer(exact, 3, 0)).toBe(true);
+    expect(checkAnswer(exact, 3)).toBe(false);
+  });
 });
 
 describe('calcStars', () => {
