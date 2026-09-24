@@ -20,9 +20,14 @@ export function formatDateTime(epochMs: number): string {
   });
 }
 
+export function formatAnswer(value: number, remainder?: number): string {
+  return remainder === undefined ? String(value) : `${value} ост. ${remainder}`;
+}
+
 export function formatAttempt(a: Attempt): string {
   const task = `${a.a} ${OP_SYMBOL[a.op]} ${a.b}`;
-  return a.correct ? `${task} = ${a.expected}` : `${task} = ${a.given}, правильно ${a.expected}`;
+  const expected = formatAnswer(a.expected, a.expectedRemainder);
+  return a.correct ? `${task} = ${expected}` : `${task} = ${formatAnswer(a.given, a.givenRemainder)}, правильно ${expected}`;
 }
 
 export function formatStars(stars: number): string {

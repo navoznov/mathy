@@ -134,7 +134,21 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
                   </div>
                 </div>
                 {op === 'div' && (
-                  <p className="muted">Пример собирается из делителя и частного — деление всегда нацело.</p>
+                  <>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={draft.divRemainder}
+                        onChange={(e) => patch({ divRemainder: e.target.checked })}
+                      />{' '}
+                      С остатком
+                    </label>
+                    <p className="muted">
+                      {draft.divRemainder
+                        ? 'Остаток от 0 до делитель − 1, иногда выпадает 0.'
+                        : 'Пример собирается из делителя и частного — деление всегда нацело.'}
+                    </p>
+                  </>
                 )}
               </>
             )}
