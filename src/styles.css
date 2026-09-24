@@ -80,6 +80,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   min-width: 3.5rem;
   border-bottom: 3px solid var(--accent);
 }
+.task .slot.idle { border-bottom-color: var(--line); }
+.task .rem-label { font-size: 0.6em; color: var(--muted); }
 
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
 .keypad button { font-size: 1.5rem; min-height: 3.75rem; }
