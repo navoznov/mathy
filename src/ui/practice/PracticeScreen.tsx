@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { calcStars, checkAnswer } from '../../domain/scoring';
 import { OP_SYMBOL } from '../../domain/types';
 import type { Attempt, PracticeMode, Session, Task } from '../../domain/types';
+import { formatAnswer } from '../format';
 import { Keypad } from './Keypad';
 import { TaskCard } from './TaskCard';
+import type { AnswerField } from './TaskCard';
 
 const FEEDBACK_MS = 800;
 /** Разбор ошибки ждёт нажатия, но не мгновенного: Enter, которым подтвердили
@@ -21,11 +23,14 @@ interface Feedback {
   correct: boolean;
   task: Task;
   given: number;
+  givenRemainder?: number;
 }
 
 export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState('');
+  const [remInput, setRemInput] = useState('');
+  const [field, setField] = useState<AnswerField>('quotient');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [dismissable, setDismissable] = useState(false);
   const [confirmAbort, setConfirmAbort] = useState(false);
@@ -35,7 +40,13 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
   const sessionStartedRef = useRef(Date.now());
 
   const task = tasks[index];
-  const canSubmit = /^-?\d+$/.test(input);
+  const hasRemainder = task.remainder !== undefined;
+  const canSubmit = hasRemainder
+    ? /^\d+$/.test(input) && /^\d+$/.test(remInput)
+    : /^-?\d+$/.test(input);
+  // у деления с остатком Enter в поле частного не отправляет, а переводит в остаток
+  const movesToRemainder = hasRemainder && field === 'quotient';
+  const canNext = movesToRemainder ? input !== '' : canSubmit;
 
   useEffect(() => {
     taskStartedRef.current = performance.now();
@@ -70,7 +81,8 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
     if (!canSubmit || feedback) return;
 
     const given = Number(input);
-    const correct = checkAnswer(task, given);
+    const givenRemainder = hasRemainder ? Number(remInput) : undefined;
+    const correct = checkAnswer(task, given, givenRemainder);
     attemptsRef.current = [
       ...attemptsRef.current,
       {
@@ -79,19 +91,27 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
         b: task.b,
         expected: task.expected,
         given,
+        ...(hasRemainder ? { expectedRemainder: task.remainder, givenRemainder } : {}),
         correct,
         ms: performance.now() - taskStartedRef.current,
       },
     ];
     setInput('');
+    setRemInput('');
+    setField('quotient');
 
     if (mode === 'training') {
-      setFeedback({ correct, task, given });
+      setFeedback({ correct, task, given, givenRemainder });
       setDismissable(false);
     } else {
       advance();
     }
-  }, [advance, canSubmit, feedback, input, mode, task]);
+  }, [advance, canSubmit, feedback, hasRemainder, input, mode, remInput, task]);
+
+  const next = useCallback(() => {
+    if (!movesToRemainder) submit();
+    else if (input !== '') setField('remainder');
+  }, [input, movesToRemainder, submit]);
 
   const dismiss = useCallback(() => {
     setFeedback(null);
@@ -111,11 +131,21 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
 
   const showingMistake = feedback !== null && !feedback.correct;
 
-  const appendDigit = useCallback((digit: string) => {
-    setInput((v) => (v.replace('-', '').length >= MAX_INPUT_LENGTH ? v : v + digit));
-  }, []);
+  const appendDigit = useCallback(
+    (digit: string) => {
+      const append = (v: string) => (v.replace('-', '').length >= MAX_INPUT_LENGTH ? v : v + digit);
+      if (field === 'remainder') setRemInput(append);
+      else setInput(append);
+    },
+    [field],
+  );
 
-  const backspace = useCallback(() => setInput((v) => v.slice(0, -1)), []);
+  // ⌫ в пустом остатке возвращает в частное — так исправляют опечатку в частном
+  const backspace = useCallback(() => {
+    if (field === 'quotient') setInput((v) => v.slice(0, -1));
+    else if (remInput === '') setField('quotient');
+    else setRemInput((v) => v.slice(0, -1));
+  }, [field, remInput]);
 
   const toggleSign = useCallback(() => {
     setInput((v) => (v.startsWith('-') ? v.slice(1) : '-' + v));
@@ -134,8 +164,9 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
       if (feedback) return;
       if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
       else if (e.key === 'Backspace') backspace();
-      else if (e.key === '-') toggleSign();
-      else if (e.key === 'Enter') submit();
+      else if (e.key === '-') {
+        if (!hasRemainder) toggleSign();
+      } else if (e.key === 'Enter') next();
       else return;
       e.preventDefault();
     };
@@ -148,8 +179,9 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
     dismiss,
     dismissable,
     feedback,
+    hasRemainder,
+    next,
     showingMistake,
-    submit,
     toggleSign,
   ]);
 
@@ -169,29 +201,30 @@ export function PracticeScreen({ tasks, mode, onFinish }: PracticeScreenProps) {
               <>✅ Отлично!</>
             ) : (
               <>
-                ❌ {feedback.given}
+                ❌ {formatAnswer(feedback.given, feedback.givenRemainder)}
                 <br />
                 {feedback.task.a} {OP_SYMBOL[feedback.task.op]} {feedback.task.b} ={' '}
-                {feedback.task.expected}
+                {formatAnswer(feedback.task.expected, feedback.task.remainder)}
               </>
             )}
           </div>
         ) : (
-          <TaskCard task={task} input={input} />
+          <TaskCard task={task} input={input} remInput={remInput} field={field} onSelectField={setField} />
         )}
 
         <Keypad
           onDigit={appendDigit}
           onBackspace={backspace}
           onToggleSign={toggleSign}
+          onRemainder={hasRemainder ? () => setField('remainder') : undefined}
           disabled={feedback !== null}
         />
 
         <button
           className="btn-primary"
           style={{ marginTop: '0.75rem' }}
-          onClick={showingMistake ? dismiss : submit}
-          disabled={showingMistake ? !dismissable : !canSubmit || feedback !== null}
+          onClick={showingMistake ? dismiss : next}
+          disabled={showingMistake ? !dismissable : !canNext || feedback !== null}
         >
           {showingMistake ? 'Понятно →' : 'Дальше →'}
         </button>

@@ -11,6 +11,7 @@ function makeSettings(patch: Partial<Settings> = {}): Settings {
     ops: { add: { ...OFF }, sub: { ...OFF }, mul: { ...OFF }, div: { ...OFF } },
     requireCarry: false,
     allowNegative: false,
+    divRemainder: false,
     trainingEnabled: true,
     adminPin: null,
     ...patch,
@@ -174,6 +175,61 @@ describe('generateTasks — невозможные настройки', () => {
   });
 });
 
+describe('generateTasks — деление с остатком', () => {
+  const withRemainder = (cfg: Partial<Settings['ops'][Op]> = {}, patch: Partial<Settings> = {}) =>
+    only('div', cfg, { divRemainder: true, ...patch });
+
+  it('собирает делимое из делителя, частного и остатка', () => {
+    for (const t of generateTasks(withRemainder({ aMin: 2, aMax: 9, bMin: 3, bMax: 7 }, { taskCount: 50 }))) {
+      expect(t.remainder).toBeDefined();
+      const r = t.remainder as number;
+      expect(t.a).toBe(t.b * t.expected + r);
+      expect(r).toBeGreaterThanOrEqual(0);
+      expect(r).toBeLessThan(t.b);
+      expect(t.b).toBeGreaterThanOrEqual(3);
+      expect(t.b).toBeLessThanOrEqual(7);
+      expect(t.expected).toBeGreaterThanOrEqual(2);
+      expect(t.expected).toBeLessThanOrEqual(9);
+    }
+  });
+
+  it('даёт нулевой остаток в формате «с остатком»', () => {
+    const [t] = generateTasks(withRemainder({ aMin: 3, aMax: 3, bMin: 5, bMax: 5 }, { taskCount: 1 }), () => 0);
+    expect(t).toEqual({ op: 'div', a: 15, b: 5, expected: 3, remainder: 0 });
+  });
+
+  it('даёт ненулевой остаток', () => {
+    const [t] = generateTasks(withRemainder({ aMin: 3, aMax: 3, bMin: 5, bMax: 5 }, { taskCount: 1 }), () => 0.99);
+    expect(t).toEqual({ op: 'div', a: 19, b: 5, expected: 3, remainder: 4 });
+  });
+
+  it('при делителе 1 остаток всегда 0', () => {
+    for (const t of generateTasks(withRemainder({ aMin: 2, aMax: 9, bMin: 1, bMax: 1 }, { taskCount: 8 }))) {
+      expect(t.remainder).toBe(0);
+      expect(t.a).toBe(t.expected);
+    }
+  });
+
+  it('допускает нулевое частное', () => {
+    const [t] = generateTasks(withRemainder({ aMin: 0, aMax: 0, bMin: 5, bMax: 5 }, { taskCount: 1 }), () => 0.99);
+    expect(t).toEqual({ op: 'div', a: 4, b: 5, expected: 0, remainder: 4 });
+  });
+
+  it('без флага тратит rng как раньше: сначала делитель, потом частное', () => {
+    const values = [0.99, 0];
+    let i = 0;
+    const [t] = generateTasks(only('div', {}, { taskCount: 1 }), () => values[i++]);
+    expect(t).toEqual({ op: 'div', a: 20, b: 10, expected: 2 });
+  });
+
+  it('без флага остатка нет и деление нацело', () => {
+    for (const t of generateTasks(only('div', { aMin: 2, aMax: 9, bMin: 3, bMax: 7 }, { taskCount: 30 }))) {
+      expect('remainder' in t).toBe(false);
+      expect(t.a % t.b).toBe(0);
+    }
+  });
+});
+
 describe('uniqueTaskSpace', () => {
   it('перемножает размеры диапазонов', () => {
     expect(uniqueTaskSpace(only('mul', { aMin: 2, aMax: 3, bMin: 2, bMax: 3 }))).toBe(4);
@@ -183,6 +239,11 @@ describe('uniqueTaskSpace', () => {
     const s = only('mul', { aMin: 2, aMax: 3, bMin: 2, bMax: 3 });
     s.ops.div = { enabled: true, aMin: 2, aMax: 4, bMin: 2, bMax: 4 };
     expect(uniqueTaskSpace(s)).toBe(4 + 9);
+  });
+
+  it('учитывает варианты остатка: у делителя b их ровно b', () => {
+    const s = only('div', { aMin: 2, aMax: 4, bMin: 2, bMax: 4 }, { divRemainder: true });
+    expect(uniqueTaskSpace(s)).toBe(3 * (2 + 3 + 4));
   });
 
   it('не считает выключенные операции', () => {

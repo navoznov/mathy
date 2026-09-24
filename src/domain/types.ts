@@ -39,6 +39,8 @@ export interface Settings {
   ops: Record<Op, OpConfig>;
   requireCarry: boolean;
   allowNegative: boolean;
+  /** Деление с остатком: делимое не обязано делиться нацело, ответ — частное и остаток. */
+  divRemainder: boolean;
   /** Доступен ли запуск тренировки. Экзамен доступен всегда. */
   trainingEnabled: boolean;
   adminPin: string | null;
@@ -49,6 +51,8 @@ export interface Task {
   a: number;
   b: number;
   expected: number;
+  /** Есть только у деления с остатком. 0 — поделилось нацело, но ответ всё равно «N ост. 0». */
+  remainder?: number;
 }
 
 export interface Attempt {
@@ -57,6 +61,9 @@ export interface Attempt {
   b: number;
   expected: number;
   given: number;
+  /** Есть только у деления с остатком. */
+  expectedRemainder?: number;
+  givenRemainder?: number;
   correct: boolean;
   /** Время именно на этот пример, мс. */
   ms: number;

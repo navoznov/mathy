@@ -2,8 +2,9 @@ import type { Session, Summary, Task } from './types';
 
 export const MAX_STARS = 5;
 
-export function checkAnswer(task: Task, given: number): boolean {
-  return given === task.expected;
+/** У деления с остатком верно, только если совпали и частное, и остаток. */
+export function checkAnswer(task: Task, given: number, givenRemainder?: number): boolean {
+  return given === task.expected && givenRemainder === task.remainder;
 }
 
 /**
