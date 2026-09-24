@@ -107,7 +107,10 @@ function makeTask(op: Op, settings: Settings, rng: () => number): Task {
   // div: генерируем от ответа — делимое собирается из делителя и частного
   const divisor = randInt(rng, c.bMin, c.bMax);
   const quotient = randInt(rng, c.aMin, c.aMax);
-  return { op, a: divisor * quotient, b: divisor, expected: quotient };
+  if (!settings.divRemainder) return { op, a: divisor * quotient, b: divisor, expected: quotient };
+
+  const remainder = randInt(rng, 0, divisor - 1);
+  return { op, a: divisor * quotient + remainder, b: divisor, expected: quotient, remainder };
 }
 
 function shuffle<T>(items: T[], rng: () => number): T[] {
@@ -179,6 +182,10 @@ export function uniqueTaskSpace(settings: Settings): number {
     const c = settings.ops[op];
     const spanA = Math.max(0, c.aMax - c.aMin + 1);
     const spanB = Math.max(0, c.bMax - c.bMin + 1);
+    if (op === 'div' && settings.divRemainder) {
+      // у делителя b ровно b вариантов остатка: spanA · (bMin + … + bMax)
+      return sum + spanA * (((c.bMin + c.bMax) * spanB) / 2);
+    }
     return sum + spanA * spanB;
   }, 0);
 }

@@ -51,6 +51,8 @@ export interface Task {
   a: number;
   b: number;
   expected: number;
+  /** Есть только у деления с остатком. 0 — поделилось нацело, но ответ всё равно «N ост. 0». */
+  remainder?: number;
 }
 
 export interface Attempt {
