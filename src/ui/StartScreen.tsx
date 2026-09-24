@@ -38,6 +38,22 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
         >
           Экзамен
         </button>
+        <button
+          style={{ width: '100%', marginTop: '0.5rem' }}
+          onClick={() => {
+            window.location.hash = '#/admin';
+          }}
+        >
+          Настройки
+        </button>
+        <button
+          style={{ width: '100%', marginTop: '0.5rem' }}
+          onClick={() => {
+            window.location.hash = '#/history';
+          }}
+        >
+          История
+        </button>
         <p className="muted" style={{ marginBottom: 0 }}>
           В тренировке сразу видно, верно ли решён пример. На экзамене — только в конце.
         </p>
@@ -62,10 +78,6 @@ export function StartScreen({ settings, history, disabledReason, onStart }: Star
           </p>
         </div>
       )}
-
-      <p className="muted">
-        <a href="#/history">История</a> · <a href="#/admin">Настройки</a>
-      </p>
     </div>
   );
 }
