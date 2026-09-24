@@ -39,6 +39,8 @@ export interface Settings {
   ops: Record<Op, OpConfig>;
   requireCarry: boolean;
   allowNegative: boolean;
+  /** Деление с остатком: делимое не обязано делиться нацело, ответ — частное и остаток. */
+  divRemainder: boolean;
   /** Доступен ли запуск тренировки. Экзамен доступен всегда. */
   trainingEnabled: boolean;
   adminPin: string | null;

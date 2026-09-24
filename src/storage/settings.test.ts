@@ -36,6 +36,12 @@ describe('PRESETS', () => {
       expect(preset.trainingEnabled).toBe(true);
     }
   });
+
+  it('не включает деление с остатком ни в одном пресете', () => {
+    for (const preset of Object.values(PRESETS)) {
+      expect(preset.divRemainder).toBe(false);
+    }
+  });
 });
 
 describe('loadSettings', () => {
@@ -55,6 +61,16 @@ describe('loadSettings', () => {
     const custom = { ...DEFAULTS, taskCount: 7, requireCarry: true };
     saveSettings(custom);
     expect(loadSettings()).toEqual(custom);
+  });
+
+  it('доливает divRemainder в настройки, сохранённые до его появления', () => {
+    const legacy: Record<string, unknown> = { ...DEFAULTS, taskCount: 7 };
+    delete legacy.divRemainder;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(legacy));
+
+    const loaded = loadSettings();
+    expect(loaded.divRemainder).toBe(false);
+    expect(loaded.taskCount).toBe(7);
   });
 
   it('откатывается к DEFAULTS при чужой версии схемы', () => {
