@@ -85,7 +85,7 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
         </div>
 
         {OPS.map((op) => (
-          <div key={op} style={{ borderTop: '1px solid var(--line)', paddingTop: '0.75rem' }}>
+          <div key={op} className="op-block">
             <label>
               <input
                 type="checkbox"
@@ -97,6 +97,13 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
 
             {draft.ops[op].enabled && (
               <>
+                {op === 'div' && (
+                  <p className="muted">
+                    {draft.divRemainder
+                      ? 'Остаток от 0 до делитель − 1, иногда выпадает 0.'
+                      : 'Пример собирается из делителя и частного — деление всегда нацело.'}
+                  </p>
+                )}
                 <div className="field">
                   <label>{RANGE_LABEL[op][0]}</label>
                   <div className="range">
@@ -133,47 +140,40 @@ export function SettingsForm({ settings, onSave }: SettingsFormProps) {
                     />
                   </div>
                 </div>
+                {op === 'add' && (
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={draft.requireCarry}
+                      onChange={(e) => patch({ requireCarry: e.target.checked })}
+                    />{' '}
+                    Только с переходом через десяток
+                  </label>
+                )}
+                {op === 'sub' && (
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={draft.allowNegative}
+                      onChange={(e) => patch({ allowNegative: e.target.checked })}
+                    />{' '}
+                    Разрешить отрицательные ответы
+                  </label>
+                )}
                 {op === 'div' && (
-                  <>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={draft.divRemainder}
-                        onChange={(e) => patch({ divRemainder: e.target.checked })}
-                      />{' '}
-                      С остатком
-                    </label>
-                    <p className="muted">
-                      {draft.divRemainder
-                        ? 'Остаток от 0 до делитель − 1, иногда выпадает 0.'
-                        : 'Пример собирается из делителя и частного — деление всегда нацело.'}
-                    </p>
-                  </>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={draft.divRemainder}
+                      onChange={(e) => patch({ divRemainder: e.target.checked })}
+                    />{' '}
+                    С остатком
+                  </label>
                 )}
               </>
             )}
           </div>
         ))}
-
-        <div style={{ borderTop: '1px solid var(--line)', paddingTop: '0.75rem' }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={draft.requireCarry}
-              onChange={(e) => patch({ requireCarry: e.target.checked })}
-            />{' '}
-            Сложение только с переходом через десяток
-          </label>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={draft.allowNegative}
-              onChange={(e) => patch({ allowNegative: e.target.checked })}
-            />{' '}
-            Разрешить отрицательные ответы в вычитании
-          </label>
-        </div>
 
         <div style={{ borderTop: '1px solid var(--line)', paddingTop: '0.75rem' }}>
           <label>
